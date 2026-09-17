@@ -1,0 +1,1 @@
+SELECT episodes.production_code FROM episodes WHERE episodes.title = 'Hackerized!';

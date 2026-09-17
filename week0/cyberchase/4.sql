@@ -1,0 +1,1 @@
+SELECT episodes.title FROM episodes WHERE episodes.topic IS NULL;

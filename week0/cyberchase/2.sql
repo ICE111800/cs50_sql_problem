@@ -1,0 +1,1 @@
+SELECT episodes.season, episodes.title FROM episodes WHERE episodes.episode_in_season = 1;

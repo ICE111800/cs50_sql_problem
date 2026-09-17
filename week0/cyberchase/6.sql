@@ -1,0 +1,1 @@
+SELECT episodes.title FROM episodes WHERE episodes.season = 6 AND episodes.air_date LIKE '2007%';

@@ -1,0 +1,48 @@
+==================================================
+CS50 SQL: 索引設計與 EXPLAIN 判斷心法筆記
+==================================================
+核心心法：從 EXPLAIN 抓出瓶頸（SCAN vs SEARCH），
+再用「等值先、範圍後」的順序把條件塞進複合索引。
+
+--------------------------------------------------
+1. 讀懂 EXPLAIN QUERY PLAN 關鍵字
+--------------------------------------------------
+- SCAN TABLE ... : 全表逐行掃描 O(N)，大資料效能崩潰，需建 Index。
+- SEARCH TABLE ... USING INDEX ... : 命中 B-Tree 索引 O(log N)，理想狀態。
+- USE TEMP B-TREE FOR ORDER BY/GROUP BY : 排序用到暫時記憶體，可將 ORDER BY 欄位補在複合索引尾端消滅它。
+
+--------------------------------------------------
+2. 決定欄位順序的 E-R-S 黃金法則
+--------------------------------------------------
+複合索引 (col1, col2, col3) 排列原則：
+- E (Equality / 等值)   : 放 =, IN (...) 的欄位（放最左邊，瞬間削減候選列）。
+- R (Range / 範圍/模糊) : 放 >, <, BETWEEN, LIKE 'abc%' 的欄位（放中間/後方）。
+- S (Sort / 排序)       : 若有方向一致的 ORDER BY，接在尾端消滅 Temp B-Tree。
+
+* 左前綴原則（Leftmost Prefix）：
+  索引 (A, B, C) 可加速 A=?, A=? AND B=?, A=? AND B=? AND C=?；
+  但無法單獨靠 B=? 命中。
+
+--------------------------------------------------
+3. 實戰拆解範例
+--------------------------------------------------
+查詢語句：
+  SELECT courses.department, courses.number, courses.title
+  FROM courses
+  WHERE courses.title LIKE 'History%'
+    AND courses.semester = 'Fall 2023';
+
+分析：
+  - semester = 'Fall 2023' -> 等值 (E)
+  - title LIKE 'History%'   -> 模糊 (R)
+
+正確索引：
+  CREATE INDEX idx_courses_semester_title ON courses (semester, title);
+  ⚠️ 若寫成 (title, semester)，LIKE 開頭會切斷後續 semester 索引效能。
+
+--------------------------------------------------
+4. 避坑清單
+--------------------------------------------------
+- 不要盲目為單欄位建過多 Index：會拖慢 INSERT/UPDATE/DELETE 效能。
+- OR 跨欄位查詢：WHERE A = 1 OR B = 2 複合索引無效，需兩個獨立 Index 或改寫成 UNION。
+==================================================

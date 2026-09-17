@@ -1,0 +1,1 @@
+SELECT episodes.title FROM episodes WHERE episodes.air_date = '2004-12-31';
