@@ -1,5 +1,6 @@
 *.db
 *.sqlite
 *.sqlite3
+*.zip
 .DS_Store
 EOF
